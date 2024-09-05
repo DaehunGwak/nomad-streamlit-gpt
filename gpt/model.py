@@ -1,6 +1,7 @@
 from typing import Optional
 
 from langchain_core.callbacks import BaseCallbackHandler
+from langchain_openai import ChatOpenAI
 from streamlit.delta_generator import DeltaGenerator
 import streamlit as st
 
@@ -8,7 +9,6 @@ from session.service import save_message_on_session
 
 
 def create_chat_open_ai(api_key):
-    from langchain_openai import ChatOpenAI
     return ChatOpenAI(
         model="gpt-3.5-turbo",
         temperature=0.1,

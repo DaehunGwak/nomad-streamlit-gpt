@@ -17,7 +17,7 @@ from streamlit.runtime.scriptrunner import get_script_run_ctx
 
 
 @st.cache_resource(show_spinner="Embedding file...", ttl=timedelta(hours=1))
-def get_retriever_after_embedding(input_file, session_id):
+def get_retriever_after_embedding(input_file, session_id, api_key):
     file_content = input_file.read()
     file_path = f"./.cache/files/{session_id}"
     file_full_path = f"{file_path}/{input_file.name}"
@@ -40,7 +40,10 @@ def get_retriever_after_embedding(input_file, session_id):
     loader = TextLoader(file_full_path)
     seperated_docs = loader.load_and_split(text_splitter=character_text_splitter)
 
-    openai_3_small_embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+    openai_3_small_embeddings = OpenAIEmbeddings(
+        model="text-embedding-3-small",
+        api_key=api_key,
+    )
     file_store = LocalFileStore(f'{embeddings_cache_dir}/{input_file.name}')
     cached_embeddings = CacheBackedEmbeddings.from_bytes_store(
         underlying_embeddings=openai_3_small_embeddings,
@@ -92,21 +95,6 @@ class ChatCallbackHandler(BaseCallbackHandler):
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
 
-# gpts
-llm = ChatOpenAI(
-    model="gpt-3.5-turbo",
-    temperature=0.1,
-    streaming=True,
-    callbacks=[
-        ChatCallbackHandler(),
-    ]
-)
-prompt = ChatPromptTemplate.from_messages([
-    ('system', "You are a helpful assistant. Answer questions using only the following context. If you don't know the "
-               "answer just say you don't know, don't make it up:\n\n{context}"),
-    ('human', '{question}')
-])
-
 
 # views ###
 st.set_page_config(
@@ -126,12 +114,32 @@ ctx = get_script_run_ctx()
 
 with st.sidebar:
     st.write(f"your session uid: {ctx.session_id}")
+
+    input_api_key = st.text_input("Input your api key")
+    st.write(f"your api key: {input_api_key}")
+
     file = st.file_uploader("Upload your .txt file", type=['txt'])
     if st.button("Clear your chat histories"):
         st.session_state["messages"] = []
 
-if file:
-    retriever = get_retriever_after_embedding(file, ctx.session_id)
+
+if file and input_api_key:
+    retriever = get_retriever_after_embedding(file, ctx.session_id, input_api_key)
+    llm = ChatOpenAI(
+        model="gpt-3.5-turbo",
+        temperature=0.1,
+        streaming=True,
+        callbacks=[
+            ChatCallbackHandler(),
+        ],
+        api_key=input_api_key
+    )
+    prompt = ChatPromptTemplate.from_messages([
+        ('system',
+         "You are a helpful assistant. Answer questions using only the following context. If you don't know the "
+         "answer just say you don't know, don't make it up:\n\n{context}"),
+        ('human', '{question}')
+    ])
 
     if len(st.session_state["messages"]) <= 0:
         save_message_on_session("i'm ready! Ask away!", "ai")

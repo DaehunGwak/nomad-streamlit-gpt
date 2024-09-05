@@ -3,7 +3,7 @@ import os
 from langchain.embeddings import CacheBackedEmbeddings
 from langchain.storage import LocalFileStore
 from langchain_community.document_loaders import TextLoader
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import CharacterTextSplitter
 
@@ -12,7 +12,7 @@ def get_retriever_after_embedding(input_file, session_id, api_key):
     seperated_docs = _get_separated_docs_after_embedding(input_file, session_id)
     cached_embeddings = _get_cached_embeddings(input_file, session_id, api_key)
 
-    vectorstore = Chroma.from_documents(embedding=cached_embeddings, documents=seperated_docs)
+    vectorstore = FAISS.from_documents(embedding=cached_embeddings, documents=seperated_docs)
     return vectorstore.as_retriever()
 
 

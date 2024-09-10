@@ -1,7 +1,7 @@
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 
-from gpt.model import create_chat_open_ai
-from gpt.prompt import STUFF_PROMPT
+from gpt.document.model import create_chat_open_ai
+from gpt.document.prompt import STUFF_PROMPT
 
 
 def create_chain(retriever, api_key):

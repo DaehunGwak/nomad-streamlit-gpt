@@ -1,7 +1,7 @@
 import streamlit as st
 from streamlit.runtime.scriptrunner import get_script_run_ctx
 
-from gpt.chain import create_chain
+from gpt.document.chain import create_chain
 from session.service import save_message_on_session, init_message_on_session
 from view.cache import get_cached_retriever_after_embedding
 from view.message import paint_message, paint_message_history

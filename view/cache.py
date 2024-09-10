@@ -2,7 +2,7 @@ from datetime import timedelta
 
 import streamlit as st
 
-from gpt.retriever import get_retriever_after_embedding
+from gpt.document.retriever import get_retriever_after_embedding
 
 
 @st.cache_resource(show_spinner="Embedding file...", ttl=timedelta(hours=1))

@@ -1,9 +1,9 @@
 import streamlit as st
 from streamlit.runtime.scriptrunner import get_script_run_ctx
 
-from gpt.chain import create_chain
+from agents.langchains.executor import LangChainChatAgentExecutor
+from agents.langchains.model import create_langchain_agent_openai_model
 from session.service import save_message_on_session, init_message_on_session
-from view.cache import get_cached_retriever_after_embedding
 from view.message import paint_message, paint_message_history
 
 if "messages" not in st.session_state:
@@ -37,14 +37,21 @@ with st.sidebar:
 
 
 if input_api_key:
+    model = create_langchain_agent_openai_model(input_api_key)
+    executor = LangChainChatAgentExecutor(llm_model=model)
+
     if len(st.session_state["messages"]) <= 0:
         save_message_on_session("i'm ready! Ask away!", "ai")
     paint_message_history()
 
-    input_message = st.chat_input("Ask anything about your file")
+    input_message = st.chat_input("Ask something to search on DuckDuckGo or Wikipedia")
     if input_message:
         save_message_on_session(input_message, "human")
         paint_message(input_message, "human")
+
+        output = executor.search(query=input_message)
+        save_message_on_session(output, "ai")
+        paint_message(output, "ai")
 
 else:
     init_message_on_session()
